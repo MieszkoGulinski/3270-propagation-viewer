@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/racingmars/go3270"
 )
 
@@ -109,9 +107,6 @@ func toScreen(conditions PropagationConditions) go3270.Screen {
 		// Time
 		{Row: 19, Col: 0, Content: "Last updated:", Color: go3270.White},
 		{Row: 19, Col: 16, Content: parseTime(conditions.SolarData.Updated).Format("2006-01-02 15:04")},
-
-		{Row: 20, Col: 0, Content: "Current time:", Color: go3270.White},
-		{Row: 20, Col: 16, Content: time.Now().UTC().Format("2006-01-02 15:04")},
 	}
 
 	return scr

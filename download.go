@@ -59,12 +59,16 @@ type Phenomenon struct {
 	Value string `xml:",chardata"`
 }
 
+const apiURL = "https://www.hamqsl.com/solarxml.php"
+const cacheDuration = 1 * time.Hour
+const cacheFileName = "cache.xml"
+
 var cachedConditions *PropagationConditions = nil
 
 func getConditions() PropagationConditions {
 	if cachedConditions == nil {
 		// RAM cache empty, use cache.xml if exists
-		_, err := os.Stat("cache.xml")
+		_, err := os.Stat(cacheFileName)
 		if os.IsNotExist(err) {
 			// Download and save to cache.xml
 			fmt.Println("Cache file does not exist")
@@ -75,23 +79,24 @@ func getConditions() PropagationConditions {
 			return conditions
 		} else {
 			fmt.Println("Restoring cache from file")
-			cacheFileContent, err := os.ReadFile("cache.xml")
+			cacheFileContent, err := os.ReadFile(cacheFileName)
 			if err != nil {
-				panic("Error reading cache.xml")
+				panic("Error reading cache file")
 			}
 			var conditionsFromFile PropagationConditions
 			err = xml.Unmarshal(cacheFileContent, &conditionsFromFile)
 			if err != nil {
-				panic("Error unmarshalling cache.xml")
+				panic("Error unmarshalling cache file")
 			}
 			cachedConditions = &conditionsFromFile
 			return conditionsFromFile
 		}
 	}
 
-	// Check if cache.xml is older than 3 hours
+	// Check if cache.xml is older than 1 hour
+	// (The API provider recommends caching for 1 hour)
 	cachedDataTimestamp := parseTime(cachedConditions.SolarData.Updated)
-	if time.Since(cachedDataTimestamp) > 3*time.Hour {
+	if time.Since(cachedDataTimestamp) > cacheDuration {
 		fmt.Println("Cache expired, downloading new data")
 		conditions, err := downloadConditionsFromAPI()
 		if err != nil {
@@ -107,7 +112,7 @@ func getConditions() PropagationConditions {
 func downloadConditionsFromAPI() (PropagationConditions, error) {
 	fmt.Println("Downloading conditions from API")
 
-	resp, err := http.Get("https://www.hamqsl.com/solarxml.php")
+	resp, err := http.Get(apiURL)
 	if err != nil {
 		return PropagationConditions{}, err
 	}

@@ -43,6 +43,7 @@ func handleConnection(conn net.Conn) {
 		go3270.ShowScreenOpts(scr, nil, conn, go3270.ScreenOpts{
 			NoResponse: true, // do not block on waiting for user's input
 		})
-		time.Sleep(1 * time.Second)
+		// attempt to refresh every minute (note that we already cache data for 1 hour)
+		time.Sleep(1 * time.Minute)
 	}
 }
