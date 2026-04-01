@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -57,35 +60,69 @@ type Phenomenon struct {
 }
 
 func getConditions() PropagationConditions {
-	// Temporary code, read sample.xml file
-	sampleFileContent, err := os.ReadFile("sample.xml")
-	if err != nil {
-		panic("Error reading sample.xml")
-	}
-	// Parse sampleFileContent
-	var conditions PropagationConditions
-	err = xml.Unmarshal(sampleFileContent, &conditions)
-	if err != nil {
-		panic("Error unmarshalling sample.xml")
+	// Check if cache.xml exists
+	_, err := os.Stat("cache.xml")
+	if os.IsNotExist(err) {
+		// Download and save to cache.xml
+		conditions, err := downloadConditionsFromAPI()
+		if err != nil {
+			panic("Error downloading conditions from API")
+		}
+		return conditions
 	}
 
-	return conditions
+	cacheFileContent, err := os.ReadFile("cache.xml")
+	if err != nil {
+		panic("Error reading cache.xml")
+	}
+
+	var conditionsFromCache PropagationConditions
+	err = xml.Unmarshal(cacheFileContent, &conditionsFromCache)
+	if err != nil {
+		panic("Error unmarshalling cache.xml")
+	}
+
+	// Check if cache.xml is older than 3 hours
+	cachedDataTimestamp := parseTime(conditionsFromCache.SolarData.Updated)
+	if time.Since(cachedDataTimestamp) > 3*time.Hour {
+		conditions, err := downloadConditionsFromAPI()
+		if err != nil {
+			fmt.Println("Error downloading conditions from API, using cached data")
+			return conditionsFromCache
+		}
+		return conditions
+	}
+	return conditionsFromCache
 }
 
-// func getConditions() PropagationConditions {
-// 	// Check if cache.xml exists
-// 	_, err := os.Stat("cache.xml")
-// 	if os.IsNotExist(err) {
-// 		// Download and save to cache.xml
-// 	}
+func downloadConditionsFromAPI() (PropagationConditions, error) {
+	fmt.Println("Downloading conditions from API")
+	
+	resp, err := http.Get("https://www.hamqsl.com/solarxml.php")
+	if err != nil {
+		return PropagationConditions{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return PropagationConditions{}, fmt.Errorf("Response error status: %s", resp.Status)
+	}
 
-// 	// Check if cache.xml is older than 3 hours
+	responseContent, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return PropagationConditions{}, err
+	}
 
-// 	return PropagationConditions{}
-// }
+	var conditions PropagationConditions
+	if err := xml.Unmarshal(responseContent, &conditions); err != nil {
+		return PropagationConditions{}, err
+	}
 
-func downloadConditionsFromAPI() {
-	// Download XML, save to cache.xml and parse it
+	// Save response to cache.xml
+	if err := os.WriteFile("cache.xml", responseContent, 0644); err != nil {
+		return PropagationConditions{}, err
+	}
+
+	return conditions, nil
 }
 
 func parseTime(timeStr string) time.Time {
