@@ -35,11 +35,14 @@ func handleConnection(conn net.Conn) {
 		fmt.Printf("ERROR: %v\n", err)
 		return
 	}
+
 	// Infinite loop to keep connection open
 	for {
 		conditions := getConditions()
 		scr := toScreen(conditions)
-		go3270.ShowScreenOpts(scr, nil, conn, go3270.ScreenOpts{})
+		go3270.ShowScreenOpts(scr, nil, conn, go3270.ScreenOpts{
+			NoResponse: true, // do not block on waiting for user's input
+		})
 		time.Sleep(1 * time.Second)
 	}
 }
