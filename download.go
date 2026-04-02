@@ -89,7 +89,6 @@ func getConditions() PropagationConditions {
 				panic("Error unmarshalling cache file")
 			}
 			cachedConditions = &conditionsFromFile
-			return conditionsFromFile
 		}
 	}
 

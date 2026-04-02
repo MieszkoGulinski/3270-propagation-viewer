@@ -67,9 +67,9 @@ func toScreen(conditions PropagationConditions) go3270.Screen {
 
 		// Remaining conditions
 		{Row: 15, Col: 0, Content: "Geomagn. field", Color: go3270.White},
-		{Row: 15, Col: 16, Content: conditions.SolarData.GeomagField}, // QUIET / UNSETTLD
+		{Row: 15, Col: 16, Content: conditions.SolarData.GeomagField}, // QUIET / UNSETTLD / ACTIVE
 		{Row: 16, Col: 0, Content: "Signal/noise", Color: go3270.White},
-		{Row: 16, Col: 16, Content: conditions.SolarData.SignalNoise}, // possible values e.g. S1-S2, S2-S3 etc.
+		{Row: 16, Col: 16, Content: conditions.SolarData.SignalNoise}, // possible values e.g. S1-S2, S2-S3, S3-S4 etc.
 		{Row: 17, Col: 0, Content: "MUF US Boulder", Color: go3270.White},
 		{Row: 17, Col: 16, Content: conditions.SolarData.Muf},
 

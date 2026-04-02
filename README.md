@@ -4,4 +4,4 @@ Simple tool for downloading HF propagation data from [hamqsl.com](https://www.ha
 
 The viewer is written in Go and uses [go3270](https://github.com/racingmars/go3270) library.
 
-To run the viewer, use `go run .` command. Then, you need to connect to it using a TN3270 client, e.g. `x3270` or `c3270`.
+To run the viewer, use `go run .` command. Then, you need to connect to it using a TN3270 client, e.g. `x3270` or `c3270`. To customize the port, use `--port 3271` command line option.

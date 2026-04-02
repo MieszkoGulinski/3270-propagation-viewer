@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"time"
@@ -9,13 +10,16 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting TN3270 server on :3270")
-	ln, err := net.Listen("tcp", ":3270")
+	tn3270Port := flag.Int("port", 3270, "Port on which TN3270 server is served")
+	flag.Parse()
+	
+	fmt.Printf("Starting TN3270 server on port %d\n", *tn3270Port)
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", *tn3270Port))
 	if err != nil {
 		panic(err)
 	}
 	defer ln.Close()
-	fmt.Println("Listening on :3270")
+	fmt.Println("Server listening")
 
 	for {
 		conn, err := ln.Accept()
